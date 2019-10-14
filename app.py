@@ -31,6 +31,9 @@ def findQuery(table, id):
 def findAllQuery(table):
     return ("SELECT * FROM {}".format(table))
 
+def insertPeopleQuery(lastname, firstname):
+    return (f"""INSERT INTO people (firstname, lastname) VALUES("{lastname}", "{firstname}")""")
+
 def find(table, id):
     cnx = connectToDatabase()
     cursor = createCursor(cnx)
@@ -50,6 +53,16 @@ def findAll(table):
     disconnectDatabase(cnx)
     return results
 
+def insertPeople(firstname, lastname):
+    cnx = connectToDatabase()
+    cursor = createCursor(cnx)
+    cursor.execute(insertPeopleQuery(firstname, lastname))
+    people_id = cursor.lastrowid
+    cnx.commit()
+    closeCursor(cursor)
+    disconnectDatabase(cnx)
+    return people_id
+
 def printPerson(person):
     print("#{}: {} {}".format(person['id'], person['firstname'], person['lastname']))
 
@@ -67,6 +80,10 @@ list_parser.add_argument('--export' , help='Chemin du fichier exportÃ©')
 
 find_parser = action_subparser.add_parser('find', help='Trouve une entitÃ© selon un paramÃ¨tre')
 find_parser.add_argument('id' , help='Identifant Ã  rechercher')
+
+insert_parser = action_subparser.add_parser('insert', help='Insert une entitÃ©es')
+insert_parser.add_argument('--firstname' , help='Prénom à insérer')
+insert_parser.add_argument('--lastname' , help='Nom à insérer')
 
 args = parser.parse_args()
 
@@ -88,13 +105,18 @@ if args.context == "people":
         for person in people:
             printPerson(person)
 
+    if args.action == "insert":
+        peopleFirstname = args.firstname
+        peopleLastname = args.lastname
+        peopleId = insertPeople(peopleFirstname, peopleLastname)
+        print(f"l'entrée #{peopleId} a bien été ajouté")
+        
+
 if args.context == "movies":
     if args.action == "list":  
         movies = findAll("movies")
         for movie in movies:
             printMovie(movie)
-    if args.action == "find":  
-        movieId = args.id
         movies = find("movies", movieId)
         for movie in movies:
             printMovie(movie)
