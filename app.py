@@ -34,6 +34,9 @@ def findAllQuery(table):
 def insertPeopleQuery(lastname, firstname):
     return (f"""INSERT INTO people (firstname, lastname) VALUES("{lastname}", "{firstname}")""")
 
+def insertMovieQuery(title, duration, original_title, rating, release_date):
+    return (f"""INSERT INTO movies (title, duration, original_title, rating, release_date) VALUES("{title}", {duration},"{original_title}", "{rating}", "{release_date}")""")
+ 
 def find(table, id):
     cnx = connectToDatabase()
     cursor = createCursor(cnx)
@@ -63,6 +66,16 @@ def insertPeople(firstname, lastname):
     disconnectDatabase(cnx)
     return people_id
 
+def insertMovie(title, duration, original_title, rating, release_date):
+    cnx = connectToDatabase()
+    cursor = createCursor(cnx)
+    cursor.execute(insertMovieQuery(title, duration, original_title, rating, release_date))
+    people_id = cursor.lastrowid
+    cnx.commit()
+    closeCursor(cursor)
+    disconnectDatabase(cnx)
+    return people_id
+
 def printPerson(person):
     print("#{}: {} {}".format(person['id'], person['firstname'], person['lastname']))
 
@@ -84,6 +97,13 @@ find_parser.add_argument('id' , help='Identifant Ã  rechercher')
 insert_parser = action_subparser.add_parser('insert', help='Insert une entitÃ©es')
 insert_parser.add_argument('--firstname' , help='Prénom à insérer')
 insert_parser.add_argument('--lastname' , help='Nom à insérer')
+
+insert_parser.add_argument('--title' , help='Nom à insérer')
+insert_parser.add_argument('--duration' , help='Nom à insérer')
+insert_parser.add_argument('--original-title' , help='Nom à insérer')
+insert_parser.add_argument('--rating' , help='Nom à insérer')
+insert_parser.add_argument('--release_date' , help='Nom à insérer')
+
 
 args = parser.parse_args()
 
@@ -109,7 +129,7 @@ if args.context == "people":
         peopleFirstname = args.firstname
         peopleLastname = args.lastname
         peopleId = insertPeople(peopleFirstname, peopleLastname)
-        print(f"l'entrée #{peopleId} a bien été ajouté")
+        print(f"l'entrée #{peopleId} - {peopleFirstname} {peopleLastname} a bien été ajouté")
         
 
 if args.context == "movies":
@@ -120,3 +140,13 @@ if args.context == "movies":
         movies = find("movies", movieId)
         for movie in movies:
             printMovie(movie)
+
+    if args.action == "insert":
+        title = args.title 
+        duration = args.duration 
+        original_title = args.original_title 
+        rating = args.rating 
+        release_date = args.release_date
+        movieId = insertMovie(title, duration, original_title, rating, release_date)
+        print(f"l'entrée #{movieId} - {title} a bien été ajouté")
+        
