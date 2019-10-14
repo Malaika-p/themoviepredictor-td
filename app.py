@@ -98,11 +98,14 @@ insert_parser = action_subparser.add_parser('insert', help='Insert une entitÃ©
 insert_parser.add_argument('--firstname' , help='Prénom à insérer')
 insert_parser.add_argument('--lastname' , help='Nom à insérer')
 
-insert_parser.add_argument('--title' , help='Nom à insérer')
-insert_parser.add_argument('--duration' , help='Nom à insérer')
-insert_parser.add_argument('--original-title' , help='Nom à insérer')
-insert_parser.add_argument('--rating' , help='Nom à insérer')
-insert_parser.add_argument('--release_date' , help='Nom à insérer')
+insert_parser.add_argument('--title' , help='Titre à insérer')
+insert_parser.add_argument('--duration' , help='Durée à insérer')
+insert_parser.add_argument('--original-title' , help='Titre original à insérer')
+insert_parser.add_argument('--rating' , help='Rating  à insérer')
+insert_parser.add_argument('--release_date' , help='Date de sortie à insérer')
+
+find_parser = action_subparser.add_parser('import', help='Import de fichier')
+find_parser.add_argument('--file' , help='Fichier à importer')
 
 
 args = parser.parse_args()
@@ -149,4 +152,14 @@ if args.context == "movies":
         release_date = args.release_date
         movieId = insertMovie(title, duration, original_title, rating, release_date)
         print(f"l'entrée #{movieId} - {title} a bien été ajouté")
+
+    if args.action == "import":
+        myfile = args.file
+        with open(myfile, newline='') as csvfile:
+            csvreader = csv.DictReader(csvfile, delimiter=',')
+            for row in csvreader:
+                movieId = insertMovie(row['title'], row['duration'],  row['original_title'], row['rating'], row['release_date'])
+                print(f"l'entrée #{movieId} - {row['title']} a bien été ajouté")
+            
+
         
