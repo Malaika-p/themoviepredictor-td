@@ -10,6 +10,8 @@ import mysql.connector
 import sys
 import argparse
 import csv
+import bs4
+import requests
 
 def connectToDatabase():
     return mysql.connector.connect(user='predictor', password='predictor',
@@ -34,8 +36,8 @@ def findAllQuery(table):
 def insertPeopleQuery(lastname, firstname):
     return (f"""INSERT INTO people (firstname, lastname) VALUES("{lastname}", "{firstname}")""")
 
-def insertMovieQuery(title, duration, original_title, rating, release_date):
-    return (f"""INSERT INTO movies (title, duration, original_title, rating, release_date) VALUES("{title}", {duration},"{original_title}", "{rating}", "{release_date}")""")
+def insertMovieQuery(title, duration, original_title, release_date):
+    return (f"""INSERT INTO movies (title, duration, original_title, release_date) VALUES("{title}", {duration},"{original_title}", "{release_date}")""")
  
 def find(table, id):
     cnx = connectToDatabase()
@@ -66,10 +68,10 @@ def insertPeople(firstname, lastname):
     disconnectDatabase(cnx)
     return people_id
 
-def insertMovie(title, duration, original_title, rating, release_date):
+def insertMovie(title, duration, original_title, release_date):
     cnx = connectToDatabase()
     cursor = createCursor(cnx)
-    cursor.execute(insertMovieQuery(title, duration, original_title, rating, release_date))
+    cursor.execute(insertMovieQuery(title, duration, original_title, release_date))
     people_id = cursor.lastrowid
     cnx.commit()
     closeCursor(cursor)
@@ -106,6 +108,9 @@ insert_parser.add_argument('--release_date' , help='Date de sortie à insérer')
 
 find_parser = action_subparser.add_parser('import', help='Import de fichier')
 find_parser.add_argument('--file' , help='Fichier à importer')
+
+find_parser = action_subparser.add_parser('scrap', help='Scrap page wikipédia')
+find_parser.add_argument('page' , help='Page à scraper')
 
 
 args = parser.parse_args()
@@ -158,8 +163,37 @@ if args.context == "movies":
         with open(myfile, newline='') as csvfile:
             csvreader = csv.DictReader(csvfile, delimiter=',')
             for row in csvreader:
-                movieId = insertMovie(row['title'], row['duration'],  row['original_title'], row['rating'], row['release_date'])
+                movieId = insertMovie(row['title'], row['duration'],  row['original_title'], row['release_date'])
                 print(f"l'entrée #{movieId} - {row['title']} a bien été ajouté")
+
+    if args.action == "scrap":
+        page = args.page
+        
+        page = requests.get(page)
+        if page.status_code == 200:
+        
+        
+            soup = bs4.BeautifulSoup(page.text, 'html.parser')
+            li_box = soup.find_all("li")
+        
+            find_title = soup.find_all(id="firstHeading")
+            find_key = soup.find_all('th')
+            find_cell = soup.find_all('td')
+            film = {}
+            
+            for i,j in zip(find_key, find_cell):
+                key = i.get_text()
+                value = j.get_text()
+                film[key] = value
+
+           
+            film['Titre'] = find_title[0].get_text()
+            if find_key[0] != 'Titre original':
+               film['Titre original'] = film['Titre']
+
+            print("Title : {}, Original Title : {}, Duration : {} , Release on : {}".format(film['Titre'], film['Titre original'],  film['Durée'],  film['Sortie']))
+    
+
             
 
         
