@@ -28,12 +28,12 @@ def closeCursor(cursor):
     cursor.close()
 
 def findQuery(table, id):
-    return ("SELECT * FROM {} WHERE id = {}".format(table, id))
+    return (f"SELECT * FROM `{table}` WHERE id = {id}"
 
 def findAllQuery(table):
     return ("SELECT * FROM {}".format(table))
 
-def insertPeopleQuery(lastname, firstname):
+def insert_people_query(lastname, firstname):
     return (f"""INSERT INTO people (firstname, lastname) VALUES("{lastname}", "{firstname}")""")
 
 def insertMovieQuery(title, duration, original_title, release_date):
@@ -58,10 +58,10 @@ def findAll(table):
     disconnectDatabase(cnx)
     return results
 
-def insertPeople(firstname, lastname):
+def insert_people(firstname, lastname):
     cnx = connectToDatabase()
     cursor = createCursor(cnx)
-    cursor.execute(insertPeopleQuery(firstname, lastname))
+    cursor.execute(insert_people_query(firstname, lastname))
     people_id = cursor.lastrowid
     cnx.commit()
     closeCursor(cursor)
@@ -106,11 +106,11 @@ insert_parser.add_argument('--original-title' , help='Titre original à insérer
 insert_parser.add_argument('--rating' , help='Rating  à insérer')
 insert_parser.add_argument('--release_date' , help='Date de sortie à insérer')
 
-find_parser = action_subparser.add_parser('import', help='Import de fichier')
-find_parser.add_argument('--file' , help='Fichier à importer')
+import_parser = action_subparser.add_parser('import', help='Import de fichier')
+import_parser.add_argument('--file' , help='Fichier à importer')
 
-find_parser = action_subparser.add_parser('scrap', help='Scrap page wikipédia')
-find_parser.add_argument('page' , help='Page à scraper')
+scrap_parser = action_subparser.add_parser('scrap', help='Scrap page wikipédia')
+scrap_parser.add_argument('page' , help='Page à scraper')
 
 
 args = parser.parse_args()
@@ -134,10 +134,9 @@ if args.context == "people":
             printPerson(person)
 
     if args.action == "insert":
-        peopleFirstname = args.firstname
-        peopleLastname = args.lastname
-        peopleId = insertPeople(peopleFirstname, peopleLastname)
-        print(f"l'entrée #{peopleId} - {peopleFirstname} {peopleLastname} a bien été ajouté")
+        print(f"Insertion d'une nouvelle personne {args.firstname} {args.lastname}")
+        people_id = insert_people(firstname=args.firstname, lastname=args.lastname)
+        print(f"l'entrée #{people_id} - {args.firstname} {args.lastname} a bien été ajouté")
         
 
 if args.context == "movies":
