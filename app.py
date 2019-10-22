@@ -97,19 +97,19 @@ find_parser = action_subparser.add_parser('find', help='Trouve une entitÃ© sel
 find_parser.add_argument('id' , help='Identifant Ã  rechercher')
 
 insert_parser = action_subparser.add_parser('insert', help='Insert une entitées')
-know_args = parser._parse_known_args()[0]
+known_args = parser.parse_known_args()[0]
 
-if know_args.context == "people":
+if known_args.context == "people":
 
-insert_parser.add_argument('--firstname' , help='Prénom à insérer', required=True)
-insert_parser.add_argument('--lastname' , help='Nom à insérer', required=True)
+    insert_parser.add_argument('--firstname' , help='Prénom à insérer', required=True)
+    insert_parser.add_argument('--lastname' , help='Nom à insérer', required=True)
 
-if know_args.context == "movies":
-insert_parser.add_argument('--title' , help='Titre à insérer', required=True)
-insert_parser.add_argument('--duration' , help='Durée à insérer', type=int, required=True)
-insert_parser.add_argument('--original-title' , help='Titre original à insérer', required=True)
-insert_parser.add_argument('--rating' , help='Rating  à insérer', choices=('TP', '-12', '-16'), required=True)
-insert_parser.add_argument('--release_date' , help='Date de sortie à insérer', required=True)
+if known_args.context == "movies":
+    insert_parser.add_argument('--title' , help='Titre à insérer', required=True)
+    insert_parser.add_argument('--duration' , help='Durée à insérer', type=int, required=True)
+    insert_parser.add_argument('--original-title' , help='Titre original à insérer', required=True)
+    insert_parser.add_argument('--rating' , help='Rating  à insérer', choices=('TP', '-12', '-16'), required=True)
+    insert_parser.add_argument('--release_date' , help='Date de sortie à insérer', required=True)
 
 import_parser = action_subparser.add_parser('import', help='Importer un fichier csv')
 import_parser.add_argument('--file' , help='chemin vers le fichier à importer', required=True)
