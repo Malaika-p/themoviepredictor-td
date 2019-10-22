@@ -13,75 +13,75 @@ import csv
 import bs4
 import requests
 
-def connectToDatabase():
+def connect_to_database():
     return mysql.connector.connect(user='predictor', password='predictor',
                               host='127.0.0.1',
                               database='predictor')
 
-def disconnectDatabase(cnx):
+def disconnect_database(cnx):
     cnx.close()
 
-def createCursor(cnx):
+def create_cursor(cnx):
     return cnx.cursor(dictionary=True)
 
-def closeCursor(cursor):    
+def close_cursor(cursor):    
     cursor.close()
 
-def findQuery(table, id):
-    return (f"SELECT * FROM `{table}` WHERE id = {id}"
+def find_query(table, id):
+    return (f"SELECT * FROM `{table}` WHERE id = {id}")
 
-def findAllQuery(table):
+def find_all_query(table):
     return ("SELECT * FROM {}".format(table))
 
 def insert_people_query(lastname, firstname):
     return (f"""INSERT INTO people (firstname, lastname) VALUES("{lastname}", "{firstname}")""")
 
-def insertMovieQuery(title, duration, original_title, release_date):
+def insert_movie_query(title, duration, original_title, release_date):
     return (f"""INSERT INTO movies (title, duration, original_title, release_date) VALUES("{title}", {duration},"{original_title}", "{release_date}")""")
  
 def find(table, id):
-    cnx = connectToDatabase()
-    cursor = createCursor(cnx)
-    query = findQuery(table, id)
+    cnx = connect_to_database()
+    cursor = create_cursor(cnx)
+    query = find_query(table, id)
     cursor.execute(query)
     results = cursor.fetchall()
-    closeCursor(cursor)
-    disconnectDatabase(cnx)
+    close_cursor(cursor)
+    disconnect_database(cnx)
     return results
 
-def findAll(table):
-    cnx = connectToDatabase()
-    cursor = createCursor(cnx)
-    cursor.execute(findAllQuery(table))
+def find_all(table):
+    cnx = connect_to_database()
+    cursor = create_cursor(cnx)
+    cursor.execute(find_all_query(table))
     results = cursor.fetchall()
-    closeCursor(cursor)
-    disconnectDatabase(cnx)
+    close_cursor(cursor)
+    disconnect_database(cnx)
     return results
 
 def insert_people(firstname, lastname):
-    cnx = connectToDatabase()
-    cursor = createCursor(cnx)
+    cnx = connect_to_database()
+    cursor = create_cursor(cnx)
     cursor.execute(insert_people_query(firstname, lastname))
     people_id = cursor.lastrowid
     cnx.commit()
-    closeCursor(cursor)
-    disconnectDatabase(cnx)
+    close_cursor(cursor)
+    disconnect_database(cnx)
     return people_id
 
-def insertMovie(title, duration, original_title, release_date):
-    cnx = connectToDatabase()
-    cursor = createCursor(cnx)
-    cursor.execute(insertMovieQuery(title, duration, original_title, release_date))
+def insert_movie(title, duration, original_title, release_date):
+    cnx = connect_to_database()
+    cursor = create_cursor(cnx)
+    cursor.execute(insert_movie_query(title, duration, original_title, release_date))
     people_id = cursor.lastrowid
     cnx.commit()
-    closeCursor(cursor)
-    disconnectDatabase(cnx)
+    close_cursor(cursor)
+    disconnect_database(cnx)
     return people_id
 
-def printPerson(person):
+def print_person(person):
     print("#{}: {} {}".format(person['id'], person['firstname'], person['lastname']))
 
-def printMovie(movie):
+def print_movie(movie):
     print("#{}: {} released on {}".format(movie['id'], movie['title'], movie['release_date']))
 
 parser = argparse.ArgumentParser(description='Process MoviePredictor data')
@@ -97,14 +97,19 @@ find_parser = action_subparser.add_parser('find', help='Trouve une entitÃ© sel
 find_parser.add_argument('id' , help='Identifant Ã  rechercher')
 
 insert_parser = action_subparser.add_parser('insert', help='Insert une entitÃ©es')
-insert_parser.add_argument('--firstname' , help='Prénom à insérer')
-insert_parser.add_argument('--lastname' , help='Nom à insérer')
+know_args = parser._parse_known_args()[0]
 
-insert_parser.add_argument('--title' , help='Titre à insérer')
-insert_parser.add_argument('--duration' , help='Durée à insérer')
-insert_parser.add_argument('--original-title' , help='Titre original à insérer')
-insert_parser.add_argument('--rating' , help='Rating  à insérer')
-insert_parser.add_argument('--release_date' , help='Date de sortie à insérer')
+if know_args.context == "people":
+
+insert_parser.add_argument('--firstname' , help='Prénom à insérer', required=True)
+insert_parser.add_argument('--lastname' , help='Nom à insérer', required=True)
+
+if know_args.context == "movies":
+insert_parser.add_argument('--title' , help='Titre à insérer', required=True)
+insert_parser.add_argument('--duration' , help='Durée à insérer', type=int, required=True)
+insert_parser.add_argument('--original-title' , help='Titre original à insérer', required=True)
+insert_parser.add_argument('--rating' , help='Rating  à insérer', choices=('TP', '-12', '-16'), required=True)
+insert_parser.add_argument('--release_date' , help='Date de sortie à insérer', required=True)
 
 import_parser = action_subparser.add_parser('import', help='Import de fichier')
 import_parser.add_argument('--file' , help='Fichier à importer')
@@ -117,7 +122,7 @@ args = parser.parse_args()
 
 if args.context == "people":
     if args.action == "list":
-        people = findAll("people")
+        people = find_all("people")
         if args.export:
             with open(args.export, 'w', encoding='utf-8', newline='\n') as csvfile:
                 writer = csv.writer(csvfile)
@@ -126,12 +131,12 @@ if args.context == "people":
                     writer.writerow(person.values())
         else:
             for person in people:
-                printPerson(person)
+                print_person(person)
     if args.action == "find":
-        peopleId = args.id
-        people = find("people", peopleId)
+        people_id = args.id
+        people = find("people", people_id)
         for person in people:
-            printPerson(person)
+            print_person(person)
 
     if args.action == "insert":
         print(f"Insertion d'une nouvelle personne {args.firstname} {args.lastname}")
@@ -141,29 +146,28 @@ if args.context == "people":
 
 if args.context == "movies":
     if args.action == "list":  
-        movies = findAll("movies")
+        movies = find_all("movies")
         for movie in movies:
-            printMovie(movie)
-        movies = find("movies", movieId)
+            print_movie(movie)
+
+    if args.action == "find":
+        movie_id = args.id         
+        movies = find("movies", movie_id)
         for movie in movies:
-            printMovie(movie)
+            print_movie(movie)
 
     if args.action == "insert":
-        title = args.title 
-        duration = args.duration 
-        original_title = args.original_title 
-        rating = args.rating 
-        release_date = args.release_date
-        movieId = insertMovie(title, duration, original_title, rating, release_date)
-        print(f"l'entrée #{movieId} - {title} a bien été ajouté")
+        print(f"Insertion d'un nouveau film : {args.title}") 
+        movie_id = insert_movie(title=args.title, duration=args.duration, original_title=args.original_title, release_date=args.release_date)
+        print(f"l'entrée #{movie_id} - {args.title} a bien été ajouté")
 
     if args.action == "import":
         myfile = args.file
         with open(myfile, newline='') as csvfile:
             csvreader = csv.DictReader(csvfile, delimiter=',')
             for row in csvreader:
-                movieId = insertMovie(row['title'], row['duration'],  row['original_title'], row['release_date'])
-                print(f"l'entrée #{movieId} - {row['title']} a bien été ajouté")
+                movie_id = insert_movie(row['title'], row['duration'],  row['original_title'], row['release_date'])
+                print(f"l'entrée #{movie_id} - {row['title']} a bien été ajouté")
 
     if args.action == "scrap":
         page = args.page
