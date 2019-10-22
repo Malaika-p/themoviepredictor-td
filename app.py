@@ -96,7 +96,7 @@ list_parser.add_argument('--export' , help='Chemin du fichier exportÃ©')
 find_parser = action_subparser.add_parser('find', help='Trouve une entitÃ© selon un paramÃ¨tre')
 find_parser.add_argument('id' , help='Identifant Ã  rechercher')
 
-insert_parser = action_subparser.add_parser('insert', help='Insert une entitÃ©es')
+insert_parser = action_subparser.add_parser('insert', help='Insert une entitées')
 know_args = parser._parse_known_args()[0]
 
 if know_args.context == "people":
@@ -111,8 +111,8 @@ insert_parser.add_argument('--original-title' , help='Titre original à insérer
 insert_parser.add_argument('--rating' , help='Rating  à insérer', choices=('TP', '-12', '-16'), required=True)
 insert_parser.add_argument('--release_date' , help='Date de sortie à insérer', required=True)
 
-import_parser = action_subparser.add_parser('import', help='Import de fichier')
-import_parser.add_argument('--file' , help='Fichier à importer')
+import_parser = action_subparser.add_parser('import', help='Importer un fichier csv')
+import_parser.add_argument('--file' , help='chemin vers le fichier à importer', required=True)
 
 scrap_parser = action_subparser.add_parser('scrap', help='Scrap page wikipédia')
 scrap_parser.add_argument('page' , help='Page à scraper')
@@ -162,8 +162,8 @@ if args.context == "movies":
         print(f"l'entrée #{movie_id} - {args.title} a bien été ajouté")
 
     if args.action == "import":
-        myfile = args.file
-        with open(myfile, newline='') as csvfile:
+        
+        with open(args.file, 'r', encoding='utf-8', newline='\n') as csvfile:
             csvreader = csv.DictReader(csvfile, delimiter=',')
             for row in csvreader:
                 movie_id = insert_movie(row['title'], row['duration'],  row['original_title'], row['release_date'])
